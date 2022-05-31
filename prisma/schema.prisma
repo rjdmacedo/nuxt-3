@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String  @id @default(uuid()) @db.Uuid()
+  firstName String? @db.VarChar(255)
+  lastName  String? @db.VarChar(255)
+  email     String  @unique @db.VarChar(255)
+
+  // Relation fields
+  tokens  Token[]
+  profile Profile?
+}
+
+model Profile {
+  id    String  @id @default(uuid()) @db.Uuid()
+  bio   String?
+  image String? @default("https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=facearea&facepad=2&w=256&h=256&q=80")
+
+  // Relation Fields
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @unique @db.Uuid()
+}
+
+model Token {
+  id         String    @id @default(uuid()) @db.Uuid()
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  type       TokenType
+  emailToken String?   @unique // Only used for short lived email tokens
+  valid      Boolean   @default(true)
+  expiration DateTime
+
+  // Relation fields
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.Uuid()
+}
+
+enum TokenType {
+  EMAIL // used as a short-lived token sent to the user's email
+  API
+}
